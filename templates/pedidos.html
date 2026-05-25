@@ -1,0 +1,215 @@
+{% extends "layout.html" %}
+{% block title %}Pedidos – DWR{% endblock %}
+{% block page_title %}Gestión de Pedidos{% endblock %}
+{% block breadcrumb %}Inicio / Pedidos{% endblock %}
+
+{% block content %}
+<!-- TOOLBAR -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-body" style="padding:16px 24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div class="toolbar">
+        <div class="search-box">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar pedido..." oninput="filterTable()" style="padding-left:36px;width:220px"/>
+        </div>
+        <form method="GET">
+          <select name="estado" class="form-control form-control-sm filter-select" onchange="this.form.submit()">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente" {% if estado_filter=='Pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="En Proceso" {% if estado_filter=='En Proceso' %}selected{% endif %}>En Proceso</option>
+            <option value="Entregado" {% if estado_filter=='Entregado' %}selected{% endif %}>Entregado</option>
+            <option value="Cancelado" {% if estado_filter=='Cancelado' %}selected{% endif %}>Cancelado</option>
+          </select>
+        </form>
+      </div>
+      {% if user.role == 'admin' %}
+      <button class="btn btn-primary" onclick="openModal('modalNuevoPedido')">
+        <i class="fas fa-plus"></i> Nuevo Pedido
+      </button>
+      {% else %}
+      <span style="font-size:.8rem;color:var(--gray-500)"><i class="fas fa-eye" style="margin-right:5px"></i>Modo lectura</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title"><i class="fas fa-shopping-cart" style="color:var(--green-main);margin-right:8px"></i>Pedidos</div>
+      <div class="card-subtitle">{{ pedidos | length }} pedido(s) encontrados</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table id="pedidosTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Total</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          {% if user.role == 'admin' %}<th>Acciones</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pedidos %}
+        <tr>
+          <td style="color:var(--gray-500);font-size:.8rem;font-weight:600">#{{ p.id }}</td>
+          <td>
+            <div style="font-weight:600;color:var(--gray-900)">{{ p.cliente_nombre }}</div>
+            {% if p.notas %}<div style="font-size:.73rem;color:var(--gray-500)">{{ p.notas | truncate(40) }}</div>{% endif %}
+          </td>
+          <td>{{ p.producto_nombre }}</td>
+          <td style="text-align:center">{{ p.cantidad }}</td>
+          <td style="font-weight:700;color:var(--green-dark)">${{ '{:,.0f}'.format(p.total).replace(',','.') }}</td>
+          <td style="color:var(--gray-500);font-size:.82rem">{{ p.fecha }}</td>
+          <td>
+            {% if p.estado == 'Pendiente' %}<span class="badge badge-pending">⏳ {{ p.estado }}</span>
+            {% elif p.estado == 'En Proceso' %}<span class="badge badge-process">🔄 {{ p.estado }}</span>
+            {% elif p.estado == 'Entregado' %}<span class="badge badge-done">✅ {{ p.estado }}</span>
+            {% else %}<span class="badge badge-cancelled">❌ {{ p.estado }}</span>{% endif %}
+          </td>
+          {% if user.role == 'admin' %}
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm" onclick="openEstadoModal({{ p.id }}, '{{ p.estado }}', '{{ p.cliente_nombre }}')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <form method="POST" action="{{ url_for('eliminar_pedido', pid=p.id) }}" onsubmit="return confirm('¿Eliminar este pedido?')">
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray-500)">
+          <i class="fas fa-inbox" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3"></i>
+          No se encontraron pedidos
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if user.role == 'admin' %}
+<!-- MODAL NUEVO PEDIDO -->
+<div class="modal-overlay" id="modalNuevoPedido">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-plus-circle" style="color:var(--green-main);margin-right:8px"></i>Nuevo Pedido</div>
+      <button class="modal-close" onclick="closeModal('modalNuevoPedido')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('nuevo_pedido') }}">
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Cliente *</label>
+            <select name="cliente_id" class="form-control" required>
+              <option value="">Seleccionar cliente...</option>
+              {% for c in clientes %}{% if c.activo %}
+              <option value="{{ c.id }}">{{ c.nombre }} - {{ c.empresa }}</option>
+              {% endif %}{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Producto *</label>
+            <select name="producto_id" class="form-control" required onchange="updatePrice(this)">
+              <option value="">Seleccionar producto...</option>
+              {% for p in productos %}{% if p.activo %}
+              <option value="{{ p.id }}" data-price="{{ p.precio }}" data-stock="{{ p.stock }}">{{ p.nombre }} - ${{ '{:,.0f}'.format(p.precio).replace(',','.') }}</option>
+              {% endif %}{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Cantidad *</label>
+            <input type="number" name="cantidad" class="form-control" min="1" value="1" required oninput="calcTotal()"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total estimado</label>
+            <input type="text" id="totalEstimado" class="form-control" readonly value="$0" style="background:var(--gray-100);font-weight:700;color:var(--green-dark)"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notas adicionales</label>
+          <textarea name="notas" class="form-control" placeholder="Observaciones del pedido..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalNuevoPedido')">Cancelar</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Crear Pedido</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL ESTADO -->
+<div class="modal-overlay" id="modalEstado">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-edit" style="color:var(--green-main);margin-right:8px"></i>Actualizar Estado</div>
+      <button class="modal-close" onclick="closeModal('modalEstado')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" id="estadoForm">
+      <div class="modal-body">
+        <p style="font-size:.88rem;color:var(--gray-500);margin-bottom:16px">Cliente: <strong id="estadoClienteName"></strong></p>
+        <div class="form-group">
+          <label class="form-label">Nuevo estado</label>
+          <select name="estado" class="form-control" id="estadoSelect">
+            <option value="Pendiente">⏳ Pendiente</option>
+            <option value="En Proceso">🔄 En Proceso</option>
+            <option value="Entregado">✅ Entregado</option>
+            <option value="Cancelado">❌ Cancelado</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalEstado')">Cancelar</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Actualizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script>
+let selectedPrice = 0;
+
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function updatePrice(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  selectedPrice = parseInt(opt.dataset.price || 0);
+  calcTotal();
+}
+function calcTotal() {
+  const qty = parseInt(document.querySelector('[name=cantidad]')?.value || 1);
+  const t = selectedPrice * qty;
+  const el = document.getElementById('totalEstimado');
+  if (el) el.value = '$' + t.toLocaleString('es-CO');
+}
+
+function openEstadoModal(id, estado, cliente) {
+  document.getElementById('estadoForm').action = '/pedidos/actualizar/' + id;
+  document.getElementById('estadoClienteName').textContent = cliente;
+  document.getElementById('estadoSelect').value = estado;
+  openModal('modalEstado');
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#pedidosTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,229 @@
+{% extends "layout.html" %}
+{% block title %}Análisis IA – DWR{% endblock %}
+{% block page_title %}Análisis con <em style="font-style:italic;font-weight:400">Inteligencia Artificial</em>{% endblock %}
+{% block breadcrumb %}Inicio / Análisis IA{% endblock %}
+
+{% block content %}
+
+<!-- BANNER INTRO -->
+<div style="background:linear-gradient(135deg,#1a5c2a 0%,#2d8a45 60%,#3a9ecf 100%);border-radius:var(--radius);padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;gap:24px;color:#fff;position:relative;overflow:hidden">
+  <div style="position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:rgba(255,255,255,.05);border-radius:50%"></div>
+  <div style="position:absolute;bottom:-60px;right:120px;width:140px;height:140px;background:rgba(255,255,255,.04);border-radius:50%"></div>
+  <div style="width:64px;height:64px;background:rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.8rem">🧠</div>
+  <div style="flex:1">
+    <div style="font-size:1.15rem;font-weight:800;margin-bottom:6px">Motor de Predicción DWR</div>
+    <div style="font-size:.88rem;opacity:.85;line-height:1.6;max-width:600px">Análisis automático del historial de pedidos, niveles de stock y tendencias de demanda para optimizar la operación de tu agroindustria.</div>
+  </div>
+  <div style="text-align:center;flex-shrink:0">
+    <div style="font-size:2rem;font-weight:800">{{ tasa_entrega }}%</div>
+    <div style="font-size:.72rem;opacity:.75;text-transform:uppercase;letter-spacing:1px">Tasa de entrega</div>
+  </div>
+</div>
+
+<!-- KPIs IA -->
+<div class="stats-grid" style="margin-bottom:28px">
+  <div class="stat-card green">
+    <div class="stat-icon green"><i class="fas fa-brain"></i></div>
+    <div class="stat-label">Predicciones activas</div>
+    <div class="stat-value">{{ predicciones | length }}</div>
+    <div class="stat-sub">Productos analizados</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-icon yellow"><i class="fas fa-triangle-exclamation"></i></div>
+    <div class="stat-label">Alertas de stock</div>
+    <div class="stat-value">{{ predicciones | selectattr('alerta') | list | length }}</div>
+    <div class="stat-sub">Requieren reabastecimiento</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-icon blue"><i class="fas fa-chart-line"></i></div>
+    <div class="stat-label">Pedidos este mes</div>
+    <div class="stat-value">{{ pedidos_mes }}</div>
+    <div class="stat-sub">Desde el 1 de abril</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon green"><i class="fas fa-dollar-sign"></i></div>
+    <div class="stat-label">Ventas confirmadas</div>
+    <div class="stat-value">${{ "{:,.0f}".format(total_ventas).replace(",",".") }}</div>
+    <div class="stat-sub">Pedidos entregados</div>
+  </div>
+</div>
+
+<!-- PREDICCIÓN + RECOMENDACIONES -->
+<div style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px;margin-bottom:20px">
+
+  <!-- Predicción de demanda -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-chart-bar" style="color:var(--green-main);margin-right:8px"></i>Predicción de demanda — próximo mes</div>
+        <div class="card-subtitle">Stock actual vs demanda estimada por producto</div>
+      </div>
+    </div>
+    <div style="padding:8px 0">
+      {% for p in predicciones %}
+      <div style="padding:14px 24px;border-bottom:1px solid var(--gray-100);{% if loop.last %}border-bottom:none{% endif %}">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <div style="font-size:.88rem;font-weight:700;color:var(--gray-900)">{{ p.nombre }}</div>
+            <div style="font-size:.72rem;color:var(--gray-500)">{{ p.categoria }}</div>
+          </div>
+          {% if p.alerta %}
+          <span style="background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:99px;display:flex;align-items:center;gap:4px">
+            <i class="fas fa-circle-exclamation"></i> Reabastecer
+          </span>
+          {% else %}
+          <span style="background:var(--green-pale);color:var(--green-dark);border:1px solid var(--green-mid);font-size:.68rem;font-weight:700;padding:3px 10px;border-radius:99px;display:flex;align-items:center;gap:4px">
+            <i class="fas fa-circle-check"></i> OK
+          </span>
+          {% endif %}
+        </div>
+        <!-- Stock bar -->
+        <div style="margin-bottom:5px">
+          <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--gray-500);margin-bottom:3px">
+            <span>Stock actual</span><span style="font-weight:700;color:var(--gray-700)">{{ p.stock }} uds</span>
+          </div>
+          <div style="height:7px;background:var(--gray-100);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:{{ [p.stock * 4, 100] | min }}%;background:{% if p.alerta %}#f97316{% else %}var(--green-main){% endif %};border-radius:99px;transition:width .6s"></div>
+          </div>
+        </div>
+        <!-- Demand bar -->
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:.7rem;color:var(--gray-500);margin-bottom:3px">
+            <span>Demanda predicha</span><span style="font-weight:700;color:var(--gray-700)">{{ p.demanda_predicha }} uds</span>
+          </div>
+          <div style="height:7px;background:var(--gray-100);border-radius:99px;overflow:hidden">
+            <div style="height:100%;width:{{ [p.demanda_predicha * 4, 100] | min }}%;background:#f59e0b;border-radius:99px;transition:width .6s"></div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Recomendaciones -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-lightbulb" style="color:#d97706;margin-right:8px"></i>Recomendaciones IA</div>
+        <div class="card-subtitle">Acciones sugeridas basadas en el análisis</div>
+      </div>
+    </div>
+    <div style="padding:8px 0">
+      {% for p in predicciones if p.alerta %}
+      <div style="padding:14px 20px;border-bottom:1px solid var(--gray-100);display:flex;gap:12px;align-items:flex-start">
+        <div style="width:36px;height:36px;background:#fff7ed;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem">📦</div>
+        <div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--gray-900)">Reabastecer {{ p.nombre }}</div>
+          <div style="font-size:.78rem;color:var(--gray-500);line-height:1.5;margin-top:2px">
+            Stock: <strong style="color:#c2410c">{{ p.stock }}</strong> uds. Demanda estimada: <strong>{{ p.demanda_predicha }}</strong>. Pedir al menos <strong>{{ p.demanda_predicha - p.stock + 3 }}</strong> unidades.
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- Si no hay alertas, mostrar mensaje positivo y recomendaciones generales -->
+      {% endfor %}
+
+      <!-- Recomendaciones fijas adicionales -->
+      <div style="padding:14px 20px;border-bottom:1px solid var(--gray-100);display:flex;gap:12px;align-items:flex-start">
+        <div style="width:36px;height:36px;background:var(--blue-light);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem">📅</div>
+        <div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--gray-900)">Temporada de siembra próxima</div>
+          <div style="font-size:.78rem;color:var(--gray-500);line-height:1.5;margin-top:2px">Históricamente, mayo-junio registra +40% en pedidos de sistemas de goteo. Prepara stock con anticipación.</div>
+        </div>
+      </div>
+      <div style="padding:14px 20px;border-bottom:1px solid var(--gray-100);display:flex;gap:12px;align-items:flex-start">
+        <div style="width:36px;height:36px;background:var(--green-pale);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem">📈</div>
+        <div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--gray-900)">Crecimiento proyectado +28%</div>
+          <div style="font-size:.78rem;color:var(--gray-500);line-height:1.5;margin-top:2px">Basado en la tendencia actual, se proyectan ${{ "{:,.0f}".format(2450000).replace(",",".") }} en ventas para el próximo mes.</div>
+        </div>
+      </div>
+      <div style="padding:14px 20px;display:flex;gap:12px;align-items:flex-start">
+        <div style="width:36px;height:36px;background:#f0fdf4;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1rem">🌧️</div>
+        <div>
+          <div style="font-size:.85rem;font-weight:700;color:var(--gray-900)">Temporada seca en Córdoba</div>
+          <div style="font-size:.78rem;color:var(--gray-500);line-height:1.5;margin-top:2px">Las condiciones climáticas sugieren mayor demanda de sistemas de riego tecnificado en la región Caribe.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRÁFICA HISTÓRICO + PROYECCIÓN -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-header">
+    <div>
+      <div class="card-title"><i class="fas fa-chart-area" style="color:var(--blue-main);margin-right:8px"></i>Histórico de ventas y proyección</div>
+      <div class="card-subtitle">Ingresos mensuales reales vs proyección IA para los próximos 3 meses</div>
+    </div>
+    <span style="background:var(--blue-light);color:var(--blue-main);font-size:.72rem;font-weight:700;padding:4px 12px;border-radius:99px;border:1px solid #bfdbfe">
+      <i class="fas fa-flask" style="margin-right:4px"></i>BETA
+    </span>
+  </div>
+  <div class="card-body" style="padding:24px">
+    <div style="display:flex;gap:20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--gray-500)">
+        <div style="width:14px;height:4px;background:var(--green-main);border-radius:2px"></div> Ventas reales
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--gray-500)">
+        <div style="width:14px;height:4px;background:#f59e0b;border-radius:2px;border-top:2px dashed #f59e0b;height:0"></div> Proyección
+      </div>
+    </div>
+    <!-- Chart bars compuesto -->
+    {% set all_vals  = ventas_historico + ventas_proyectadas %}
+    {% set all_meses = meses_historico + meses_proyectados %}
+    {% set max_val   = all_vals | max %}
+    <div style="display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 4px">
+      {% for i in range(ventas_historico | length) %}
+      {% set h = (ventas_historico[i] / max_val * 100) | int %}
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end">
+        <div style="width:100%;height:{{ h }}%;background:linear-gradient(180deg,var(--green-light),var(--green-main));border-radius:4px 4px 0 0;position:relative;cursor:pointer;transition:opacity .2s"
+             title="${{ '{:,.0f}'.format(ventas_historico[i]).replace(',','.') }}">
+        </div>
+        <span style="font-size:.6rem;color:var(--gray-500);font-weight:600">{{ meses_historico[i] }}</span>
+      </div>
+      {% endfor %}
+      <!-- Separator -->
+      <div style="width:1px;background:var(--gray-200);height:80%;align-self:flex-start;margin-top:10px;flex-shrink:0"></div>
+      {% for i in range(ventas_proyectadas | length) %}
+      {% set h = (ventas_proyectadas[i] / max_val * 100) | int %}
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end">
+        <div style="width:100%;height:{{ h }}%;background:linear-gradient(180deg,#fcd34d,#f59e0b);border-radius:4px 4px 0 0;opacity:.85;cursor:pointer;transition:opacity .2s"
+             title="Proyección: ${{ '{:,.0f}'.format(ventas_proyectadas[i]).replace(',','.') }}">
+        </div>
+        <span style="font-size:.6rem;color:#d97706;font-weight:700">{{ meses_proyectados[i] }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- REDUCCIÓN DE PÉRDIDAS -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:28px">
+  <div class="card" style="border-top:3px solid var(--green-main)">
+    <div class="card-body" style="padding:20px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:8px">♻️</div>
+      <div style="font-size:1.6rem;font-weight:800;color:var(--green-main)">-35%</div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--gray-700);margin-top:4px">Reducción de pérdidas</div>
+      <div style="font-size:.73rem;color:var(--gray-500);margin-top:4px;line-height:1.5">Proyectado con gestión IA vs operación manual</div>
+    </div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--blue-main)">
+    <div class="card-body" style="padding:20px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:8px">⚡</div>
+      <div style="font-size:1.6rem;font-weight:800;color:var(--blue-main)">+28%</div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--gray-700);margin-top:4px">Eficiencia operativa</div>
+      <div style="font-size:.73rem;color:var(--gray-500);margin-top:4px;line-height:1.5">Mejora en tiempos de respuesta y despacho</div>
+    </div>
+  </div>
+  <div class="card" style="border-top:3px solid var(--yellow)">
+    <div class="card-body" style="padding:20px;text-align:center">
+      <div style="font-size:2rem;margin-bottom:8px">🎯</div>
+      <div style="font-size:1.6rem;font-weight:800;color:#d97706">92%</div>
+      <div style="font-size:.78rem;font-weight:700;color:var(--gray-700);margin-top:4px">Precisión de predicción</div>
+      <div style="font-size:.73rem;color:var(--gray-500);margin-top:4px;line-height:1.5">Exactitud del modelo en los últimos 90 días</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

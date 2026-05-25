@@ -1,0 +1,230 @@
+{% extends "layout.html" %}
+{% block title %}Inventario – DWR{% endblock %}
+{% block page_title %}Gestión de Inventario{% endblock %}
+{% block breadcrumb %}Inicio / Inventario{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom:20px">
+  <div class="card-body" style="padding:16px 24px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div class="search-box">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Buscar producto..." oninput="filterTable()" style="padding-left:36px;width:240px"/>
+      </div>
+      {% if user.role == 'admin' %}
+      <button class="btn btn-primary" onclick="openModal('modalNuevoProducto')">
+        <i class="fas fa-plus"></i> Nuevo Producto
+      </button>
+      {% else %}
+      <span style="font-size:.8rem;color:var(--gray-500)"><i class="fas fa-eye" style="margin-right:5px"></i>Modo lectura</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- STATS ROW -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:20px">
+  {% set activos = productos | selectattr('activo') | list %}
+  <div class="card" style="padding:18px 20px">
+    <div style="font-size:.75rem;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Total productos</div>
+    <div style="font-size:1.8rem;font-weight:800;color:var(--gray-900);margin-top:4px">{{ activos | length }}</div>
+  </div>
+  <div class="card" style="padding:18px 20px">
+    <div style="font-size:.75rem;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Unidades totales</div>
+    <div style="font-size:1.8rem;font-weight:800;color:var(--green-dark);margin-top:4px">{{ activos | sum(attribute='stock') }}</div>
+  </div>
+  <div class="card" style="padding:18px 20px">
+    <div style="font-size:.75rem;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Stock bajo (≤{{ alertas_stock }})</div>
+    <div style="font-size:1.8rem;font-weight:800;color:var(--red);margin-top:4px">{{ activos | selectattr('stock', 'le', alertas_stock) | list | length }}</div>
+  </div>
+  <div class="card" style="padding:18px 20px">
+    <div style="font-size:.75rem;color:var(--gray-500);font-weight:600;text-transform:uppercase;letter-spacing:.5px">Valor inventario</div>
+    <div style="font-size:1.4rem;font-weight:800;color:var(--green-dark);margin-top:4px">${{ '{:,.0f}'.format(activos | sum(attribute='precio') * activos | sum(attribute='stock') // (activos|length if activos else 1)).replace(',','.') }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title"><i class="fas fa-boxes" style="color:var(--green-main);margin-right:8px"></i>Productos en inventario</div>
+      <div class="card-subtitle">Control de stock y precios</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table id="inventarioTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th>Precio unitario</th>
+          <th>Stock</th>
+          <th>Estado</th>
+          {% if user.role == 'admin' %}<th>Acciones</th>{% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in productos %}
+        {% if p.activo %}
+        <tr>
+          <td style="color:var(--gray-500);font-size:.8rem">{{ p.id }}</td>
+          <td>
+            <div style="font-weight:600;color:var(--gray-900)">{{ p.nombre }}</div>
+            <div style="font-size:.73rem;color:var(--gray-500)">{{ p.descripcion | truncate(50) }}</div>
+          </td>
+          <td>
+            <span style="background:var(--green-pale);color:var(--green-dark);padding:2px 10px;border-radius:99px;font-size:.73rem;font-weight:600">{{ p.categoria }}</span>
+          </td>
+          <td style="font-weight:700;color:var(--green-dark)">${{ '{:,.0f}'.format(p.precio).replace(',','.') }}</td>
+          <td>
+            {% if p.stock <= alertas_stock %}
+              <span class="stock-low"><i class="fas fa-exclamation-triangle" style="margin-right:4px"></i>{{ p.stock }} uds.</span>
+            {% elif p.stock <= alertas_stock * 3 %}
+              <span class="stock-warn"><i class="fas fa-minus-circle" style="margin-right:4px"></i>{{ p.stock }} uds.</span>
+            {% else %}
+              <span class="stock-ok"><i class="fas fa-check-circle" style="margin-right:4px"></i>{{ p.stock }} uds.</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-done">Disponible</span></td>
+          {% if user.role == 'admin' %}
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-secondary btn-sm" onclick="openEditModal({{ p.id }}, '{{ p.nombre }}', {{ p.precio }}, {{ p.stock }}, '{{ p.categoria }}', '{{ p.descripcion | replace("'", "\\'") }}')">
+                <i class="fas fa-edit"></i>
+              </button>
+              <form method="POST" action="{{ url_for('eliminar_producto', pid=p.id) }}" onsubmit="return confirm('¿Desactivar este producto?')">
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+              </form>
+            </div>
+          </td>
+          {% endif %}
+        </tr>
+        {% endif %}
+        {% else %}
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gray-500)">
+          <i class="fas fa-boxes" style="font-size:2rem;display:block;margin-bottom:8px;opacity:.3"></i>No hay productos registrados
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if user.role == 'admin' %}
+<!-- MODAL NUEVO PRODUCTO -->
+<div class="modal-overlay" id="modalNuevoProducto">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-plus-circle" style="color:var(--green-main);margin-right:8px"></i>Nuevo Producto</div>
+      <button class="modal-close" onclick="closeModal('modalNuevoProducto')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" action="{{ url_for('nuevo_producto') }}">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nombre del producto *</label>
+          <input type="text" name="nombre" class="form-control" placeholder="Ej: Sistema de goteo premium" required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Precio (COP) *</label>
+            <input type="number" name="precio" class="form-control" placeholder="1500000" min="0" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stock inicial *</label>
+            <input type="number" name="stock" class="form-control" placeholder="10" min="0" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select name="categoria" class="form-control">
+            <option>Riego por goteo</option>
+            <option>Aspersión</option>
+            <option>Automatización</option>
+            <option>Filtración</option>
+            <option>Accesorios</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción</label>
+          <textarea name="descripcion" class="form-control" placeholder="Descripción del producto..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalNuevoProducto')">Cancelar</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Agregar al Inventario</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL EDITAR PRODUCTO -->
+<div class="modal-overlay" id="modalEditarProducto">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-edit" style="color:var(--green-main);margin-right:8px"></i>Editar Producto</div>
+      <button class="modal-close" onclick="closeModal('modalEditarProducto')"><i class="fas fa-times"></i></button>
+    </div>
+    <form method="POST" id="editProductoForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nombre del producto *</label>
+          <input type="text" name="nombre" id="editNombre" class="form-control" required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Precio (COP) *</label>
+            <input type="number" name="precio" id="editPrecio" class="form-control" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stock *</label>
+            <input type="number" name="stock" id="editStock" class="form-control" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select name="categoria" id="editCategoria" class="form-control">
+            <option>Riego por goteo</option>
+            <option>Aspersión</option>
+            <option>Automatización</option>
+            <option>Filtración</option>
+            <option>Accesorios</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descripción</label>
+          <textarea name="descripcion" id="editDescripcion" class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modalEditarProducto')">Cancelar</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function openEditModal(id, nombre, precio, stock, categoria, desc) {
+  document.getElementById('editProductoForm').action = '/inventario/editar/' + id;
+  document.getElementById('editNombre').value = nombre;
+  document.getElementById('editPrecio').value = precio;
+  document.getElementById('editStock').value = stock;
+  document.getElementById('editCategoria').value = categoria;
+  document.getElementById('editDescripcion').value = desc;
+  openModal('modalEditarProducto');
+}
+
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  document.querySelectorAll('#inventarioTable tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

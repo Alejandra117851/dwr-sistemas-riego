@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="app-wrapper">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="DWR Logo"/>
+      </div>
+      <div class="sidebar-brand">
+        <div class="name">DWR</div>
+        <div class="tagline">Sistemas de Riego</div>
+      </div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">{{ user.name[0] | upper }}</div>
+      <div class="user-info">
+        <div class="uname">{{ user.name | truncate(18, True, '…') }}</div>
+        <div class="urole">{{ user.role }}</div>
+      </div>
+      <span class="role-badge {{ user.role }}">{{ user.role }}</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-label">Principal</div>
+        <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+          <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+          <span>Dashboard</span>
+        </a>
+        <a href="{{ url_for('pedidos') }}" class="nav-link {% if request.endpoint == 'pedidos' %}active{% endif %}">
+          <span class="nav-icon"><i class="fas fa-shopping-cart"></i></span>
+          <span>Pedidos</span>
+        </a>
+        <a href="{{ url_for('clientes') }}" class="nav-link {% if request.endpoint == 'clientes' %}active{% endif %}">
+          <span class="nav-icon"><i class="fas fa-users"></i></span>
+          <span>Clientes</span>
+        </a>
+        <a href="{{ url_for('inventario') }}" class="nav-link {% if request.endpoint == 'inventario' %}active{% endif %}">
+          <span class="nav-icon"><i class="fas fa-boxes"></i></span>
+          <span>Inventario</span>
+        </a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-label">Inteligencia</div>
+        <li>
+  <a href="{{ url_for('dron') }}" class="nav-link {% if request.endpoint == 'dron' %}active{% endif %}">
+    <i class="fas fa-satellite"></i>
+    <span>Monitoreo Dron</span>
+  </a>
+</li>
+        <a href="{{ url_for('ia') }}" class="nav-link {% if request.endpoint == 'ia' %}active{% endif %}">
+          <span class="nav-icon"><i class="fas fa-brain"></i></span>
+          <span>Análisis IA</span>
+          <span style="margin-left:auto;background:rgba(245,158,11,.25);color:#fcd34d;font-size:.55rem;font-weight:800;letter-spacing:.5px;padding:1px 6px;border-radius:4px">BETA</span>
+        </a>
+      </div>
+      {% if user.role == 'admin' %}
+      <div class="nav-section">
+        <div class="nav-section-label">Administración</div>
+        <a href="{{ url_for('usuarios') }}" class="nav-link {% if request.endpoint == 'usuarios' %}active{% endif %}">
+          <span class="nav-icon"><i class="fas fa-user-shield"></i></span>
+          <span>Usuarios</span>
+        </a>
+      </div>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="{{ url_for('logout') }}" class="btn-logout">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Cerrar sesión</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="page-title">{% block page_title %}AgroDigital DWR{% endblock %}</div>
+        <div class="breadcrumb">{% block breadcrumb %}Inicio{% endblock %}</div>
+      </div>
+      <div class="topbar-right">
+        <span class="topbar-date"><i class="far fa-calendar-alt" style="margin-right:5px"></i>{% block topbar_date %}{% endblock %}</span>
+        <div class="topbar-notif" title="Notificaciones">
+          <i class="fas fa-bell" style="color:#64748b;font-size:.9rem"></i>
+          <span class="notif-dot"></span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-area">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% endblock %}

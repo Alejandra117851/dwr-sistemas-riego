@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+{% block title %}Dashboard – DWR{% endblock %}
+{% block page_title %}AgroDigital <em style="font-style:italic;font-weight:400">DWR</em>{% endblock %}
+{% block breadcrumb %}Panel principal{% endblock %}
+{% block topbar_date %}{{ now if now else '' }}{% endblock %}
+
+{% block content %}
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card green">
+    <div class="stat-icon green"><i class="fas fa-dollar-sign"></i></div>
+    <div class="stat-label">Ventas totales</div>
+    <div class="stat-value">${{ "{:,.0f}".format(total_ventas).replace(',', '.') }}</div>
+    <div class="stat-trend up"><i class="fas fa-arrow-trend-up"></i> Pedidos entregados</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-icon blue"><i class="fas fa-shopping-cart"></i></div>
+    <div class="stat-label">Pedidos activos</div>
+    <div class="stat-value">{{ pedidos_activos }}</div>
+    <div class="stat-trend up"><i class="fas fa-clock"></i> Pendientes y en proceso</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-icon yellow"><i class="fas fa-boxes"></i></div>
+    <div class="stat-label">Productos disponibles</div>
+    <div class="stat-value">{{ productos_disponibles }}</div>
+    <div class="stat-sub">Unidades en inventario</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-icon green"><i class="fas fa-users"></i></div>
+    <div class="stat-label">Clientes activos</div>
+    <div class="stat-value">{{ clientes_activos }}</div>
+    <div class="stat-sub">Registrados en el sistema</div>
+  </div>
+</div>
+
+<!-- CHARTS + RECENT ORDERS -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+
+  <!-- VENTAS SEMANALES -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-chart-bar" style="color:var(--green-main);margin-right:8px"></i>Ventas semanales</div>
+        <div class="card-subtitle">Ingresos por día de la semana</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="chart-bars" id="salesChart">
+        {% set max_val = ventas_chart | max %}
+        {% for i in range(ventas_chart | length) %}
+        {% set h = (ventas_chart[i] / max_val * 100) | int %}
+        <div class="chart-bar-wrap">
+          <div class="chart-bar" style="height:{{ h }}%" data-val="${{ '{:,.0f}'.format(ventas_chart[i]).replace(',', '.') }}"></div>
+          <span class="chart-label">{{ dias[i] }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- STOCK BAJO -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title"><i class="fas fa-exclamation-triangle" style="color:#d97706;margin-right:8px"></i>Alertas de inventario</div>
+        <div class="card-subtitle">Productos con stock bajo</div>
+      </div>
+    </div>
+    <div class="card-body">
+      {% if stock_bajo %}
+      {% for p in stock_bajo %}
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--gray-100)">
+        <div>
+          <div style="font-size:.88rem;font-weight:600;color:var(--gray-900)">{{ p.nombre }}</div>
+          <div style="font-size:.75rem;color:var(--gray-500)">{{ p.categoria }}</div>
+        </div>
+        <span class="badge badge-pending">{{ p.stock }} uds.</span>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div style="text-align:center;padding:30px;color:var(--gray-500)">
+        <i class="fas fa-check-circle" style="font-size:2rem;color:var(--green-main);margin-bottom:8px;display:block"></i>
+        <span style="font-size:.88rem">Todos los productos tienen stock suficiente</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- RECENT PEDIDOS -->
+<div class="card">
+  <div class="card-header">
+    <div>
+      <div class="card-title"><i class="fas fa-list-check" style="color:var(--green-main);margin-right:8px"></i>Pedidos recientes</div>
+      <div class="card-subtitle">Últimas transacciones registradas</div>
+    </div>
+    {% if user.role == 'admin' %}
+    <a href="{{ url_for('pedidos') }}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus"></i> Nuevo pedido
+    </a>
+    {% endif %}
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cliente</th>
+          <th>Producto</th>
+          <th>Fecha</th>
+          <th>Total</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pedidos_recientes %}
+        <tr>
+          <td style="color:var(--gray-500);font-size:.8rem">#{{ p.id }}</td>
+          <td>
+            <div style="font-weight:600;color:var(--gray-900)">{{ p.cliente_nombre }}</div>
+          </td>
+          <td>{{ p.producto_nombre }}</td>
+          <td style="color:var(--gray-500);font-size:.82rem">{{ p.fecha }}</td>
+          <td style="font-weight:700;color:var(--green-dark)">${{ '{:,.0f}'.format(p.total).replace(',','.') }}</td>
+          <td>
+            {% if p.estado == 'Pendiente' %}<span class="badge badge-pending">{{ p.estado }}</span>
+            {% elif p.estado == 'En Proceso' %}<span class="badge badge-process">{{ p.estado }}</span>
+            {% elif p.estado == 'Entregado' %}<span class="badge badge-done">{{ p.estado }}</span>
+            {% else %}<span class="badge badge-cancelled">{{ p.estado }}</span>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

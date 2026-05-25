@@ -1,0 +1,316 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9",
+      "role": "admin",
+      "name": "Administrador DWR",
+      "email": "admin@dwr.com",
+      "created_at": "2026-01-01"
+    },
+    {
+      "id": 2,
+      "username": "gerente",
+      "password": "ecfba551324356e5bd27b548adf36b728783f60d9b573d142caac7baad62be49",
+      "role": "gerente",
+      "name": "Gerente DWR",
+      "email": "gerente@dwr.com",
+      "created_at": "2026-01-01"
+    }
+  ],
+  "productos": [
+    {
+      "id": 1,
+      "nombre": "Sistema de goteo",
+      "precio": 150000,
+      "stock": 15,
+      "categoria": "Riego por goteo",
+      "descripcion": "Sistema de riego por goteo profesional para cultivos de alta densidad",
+      "activo": true
+    },
+    {
+      "id": 2,
+      "nombre": "Programador de riego",
+      "precio": 800000,
+      "stock": 22,
+      "categoria": "Automatización",
+      "descripcion": "Controlador automático para programar ciclos de riego con hasta 8 zonas",
+      "activo": true
+    },
+    {
+      "id": 3,
+      "nombre": "Kit de aspersores",
+      "precio": 900000,
+      "stock": 10,
+      "categoria": "Aspersión",
+      "descripcion": "Kit completo de aspersores de alta presión para cultivos extensivos",
+      "activo": true
+    },
+    {
+      "id": 4,
+      "nombre": "Filtro de malla 200 mesh",
+      "precio": 320000,
+      "stock": 27,
+      "categoria": "Filtración",
+      "descripcion": "Filtro de malla para eliminar partículas en sistemas de riego presurizado",
+      "activo": true
+    },
+    {
+      "id": 5,
+      "nombre": "Válvula solenoidea 1\"",
+      "precio": 180000,
+      "stock": 45,
+      "categoria": "Accesorios",
+      "descripcion": "Válvula solenoidea para control automático de flujo de agua",
+      "activo": true
+    },
+    {
+      "id": 6,
+      "nombre": "tuvo pvc",
+      "precio": 10000,
+      "stock": 20,
+      "categoria": "Accesorios",
+      "descripcion": "tuvo pvc de 50 cm",
+      "activo": true
+    },
+    {
+      "id": 7,
+      "nombre": "Tuberias ",
+      "precio": 12000,
+      "stock": 15,
+      "categoria": "Accesorios",
+      "descripcion": "tubos de conexion",
+      "activo": true
+    },
+    {
+      "id": 8,
+      "nombre": "Filtros",
+      "precio": 30000,
+      "stock": 2,
+      "categoria": "Filtración",
+      "descripcion": "Filtros \r\n",
+      "activo": false
+    },
+    {
+      "id": 9,
+      "nombre": "Filtros",
+      "precio": 100000,
+      "stock": 5,
+      "categoria": "Filtración",
+      "descripcion": "",
+      "activo": true
+    }
+  ],
+  "clientes": [
+    {
+      "id": 1,
+      "nombre": "Juan Pérez",
+      "empresa": "Finca El Paraíso",
+      "telefono": "3001234567",
+      "email": "juan@finca.com",
+      "ciudad": "Montería",
+      "activo": true,
+      "created_at": "2026-01-15"
+    },
+    {
+      "id": 2,
+      "nombre": "Ana Gómez",
+      "empresa": "Cultivos Los Andes",
+      "telefono": "3109876543",
+      "email": "ana@losandes.com",
+      "ciudad": "Cereté",
+      "activo": true,
+      "created_at": "2026-02-10"
+    },
+    {
+      "id": 3,
+      "nombre": "Carlos Díaz",
+      "empresa": "Agroindustria Córdoba",
+      "telefono": "3207654321",
+      "email": "carlos@agrocor.com",
+      "ciudad": "Sahagún",
+      "activo": true,
+      "created_at": "2026-03-05"
+    },
+    {
+      "id": 4,
+      "nombre": "Shaira Julio ",
+      "empresa": "Finca Mil Colores",
+      "telefono": "3235984562",
+      "email": "shairajulio1234@gmail.com",
+      "ciudad": "Moñitos",
+      "activo": true,
+      "created_at": "2026-04-27"
+    },
+    {
+      "id": 5,
+      "nombre": "Liliana Pineda",
+      "empresa": "Finca Jaraquiel",
+      "telefono": "3154869536",
+      "email": "livepigo@hotmail.com",
+      "ciudad": "Entrega para el día 27/04/2026",
+      "activo": true,
+      "created_at": "2026-04-27"
+    },
+    {
+      "id": 6,
+      "nombre": "Maria Alejandra ",
+      "empresa": "Finca Las Palmeras",
+      "telefono": "3235984562",
+      "email": "maria@gmail.com",
+      "ciudad": "Monteria",
+      "activo": true,
+      "created_at": "2026-04-29"
+    }
+  ],
+  "pedidos": [
+    {
+      "id": 1,
+      "cliente_id": 1,
+      "cliente_nombre": "Juan Pérez",
+      "producto_id": 1,
+      "producto_nombre": "Sistema de goteo",
+      "cantidad": 2,
+      "total": 3000000,
+      "estado": "Pendiente",
+      "fecha": "2026-03-12",
+      "notas": "Instalación en zona norte"
+    },
+    {
+      "id": 2,
+      "cliente_id": 2,
+      "cliente_nombre": "Ana Gómez",
+      "producto_id": 2,
+      "producto_nombre": "Programador de riego",
+      "cantidad": 1,
+      "total": 800000,
+      "estado": "En Proceso",
+      "fecha": "2026-03-11",
+      "notas": ""
+    },
+    {
+      "id": 3,
+      "cliente_id": 3,
+      "cliente_nombre": "Carlos Díaz",
+      "producto_id": 3,
+      "producto_nombre": "Kit de aspersores",
+      "cantidad": 1,
+      "total": 2000000,
+      "estado": "Entregado",
+      "fecha": "2026-03-10",
+      "notas": "Cliente satisfecho"
+    },
+    {
+      "id": 4,
+      "cliente_id": 1,
+      "cliente_nombre": "Juan Pérez",
+      "producto_id": 4,
+      "producto_nombre": "Filtro de malla 200 mesh",
+      "cantidad": 3,
+      "total": 960000,
+      "estado": "Entregado",
+      "fecha": "2026-04-01",
+      "notas": ""
+    },
+    {
+      "id": 5,
+      "cliente_id": 4,
+      "cliente_nombre": "Shaira Julio ",
+      "producto_id": 2,
+      "producto_nombre": "Programador de riego",
+      "cantidad": 1,
+      "total": 800000,
+      "estado": "Entregado",
+      "fecha": "2026-04-27",
+      "notas": "Entrega para el dia 30/04?2026"
+    },
+    {
+      "id": 6,
+      "cliente_id": 5,
+      "cliente_nombre": "Liliana Pineda",
+      "producto_id": 5,
+      "producto_nombre": "Válvula solenoidea 1\"",
+      "cantidad": 6,
+      "total": 1080000,
+      "estado": "Entregado",
+      "fecha": "2026-04-27",
+      "notas": ""
+    },
+    {
+      "id": 7,
+      "cliente_id": 4,
+      "cliente_nombre": "Shaira Julio ",
+      "producto_id": 8,
+      "producto_nombre": "Filtros",
+      "cantidad": 3,
+      "total": 90000,
+      "estado": "Entregado",
+      "fecha": "2026-04-27",
+      "notas": ""
+    }
+  ],
+  "alertas_stock": 5,
+  "next_pedido_id": 8,
+  "next_producto_id": 10,
+  "next_cliente_id": 7,
+  "next_user_id": 3,
+  
+"zonas_dron": [
+    {
+      "nombre": "Zona A – Norte",
+      "cultivo": "Maíz",
+      "hectareas": 3.5,
+      "humedad": 72,
+      "temperatura": 28,
+      "estado": "Óptimo",
+      "recomendacion": "Sin acción requerida. Condiciones ideales para el cultivo."
+    },
+    {
+      "nombre": "Zona B – Sur",
+      "cultivo": "Tomate",
+      "hectareas": 2.0,
+      "humedad": 31,
+      "temperatura": 32,
+      "estado": "Necesita Riego",
+      "recomendacion": "Activar sistema de goteo por 45 minutos. Humedad por debajo del umbral."
+    },
+    {
+      "nombre": "Zona C – Este",
+      "cultivo": "Pimentón",
+      "hectareas": 1.8,
+      "humedad": 65,
+      "temperatura": 27,
+      "estado": "Óptimo",
+      "recomendacion": "Condiciones estables. Revisar en 24 horas."
+    },
+    {
+      "nombre": "Zona D – Oeste",
+      "cultivo": "Yuca",
+      "hectareas": 4.2,
+      "humedad": 22,
+      "temperatura": 35,
+      "estado": "Alerta",
+      "recomendacion": "⚠️ Riego urgente. Temperatura alta y humedad crítica. Activar aspersores inmediatamente."
+    },
+    {
+      "nombre": "Zona E – Centro",
+      "cultivo": "Frijol",
+      "hectareas": 2.5,
+      "humedad": 58,
+      "temperatura": 29,
+      "estado": "Óptimo",
+      "recomendacion": "Nivel aceptable. Programar riego preventivo para mañana."
+    },
+    {
+      "nombre": "Zona F – Alta",
+      "cultivo": "Ñame",
+      "hectareas": 3.0,
+      "humedad": 40,
+      "temperatura": 30,
+      "estado": "Necesita Riego",
+      "recomendacion": "Iniciar ciclo de riego por goteo. Monitorear en 2 horas."
+    }
+  ],
+  "ultimo_escaneo_dron": "Hoy 08:45"
+}

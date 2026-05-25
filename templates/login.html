@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Iniciar Sesión – DWR Sistemas de Riego{% endblock %}
+{% block body %}
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="DWR Logo"/>
+      <div class="brand">DWR</div>
+      <div class="sub">Sistemas de Riego</div>
+    </div>
+
+    <div class="login-title">Bienvenido</div>
+    <div class="login-subtitle">Ingresa tus credenciales para acceder al sistema</div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="alert-{{ category }}">
+      <i class="fas fa-{% if category == 'error' %}exclamation-triangle{% else %}check-circle{% endif %}"></i>
+      {{ message }}
+    </div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('login') }}">
+      <div class="form-group">
+        <label class="form-label">Usuario</label>
+        <div class="input-icon">
+          <i class="fas fa-user icon"></i>
+          <input type="text" name="username" class="form-control" placeholder="Ingresa tu usuario" required autocomplete="username"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="input-icon">
+          <i class="fas fa-lock icon"></i>
+          <input type="password" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password"/>
+        </div>
+      </div>
+      <button type="submit" class="btn-login">
+        <i class="fas fa-sign-in-alt" style="margin-right:8px"></i>Ingresar al Sistema
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
