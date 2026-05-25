@@ -7,6 +7,8 @@ import hashlib
 app = Flask(__name__)
 app.secret_key = 'dwr_sistemas_riego_2026_secret'
 
+from whitenoise import WhiteNoise
+app.wsgi_app = WhiteNoise(app.wsgi_app, root='static/', prefix='static')
 DATA_FILE = 'data.json'
 
 def load_data():
